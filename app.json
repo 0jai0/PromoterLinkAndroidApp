@@ -2,6 +2,7 @@
   "expo": {
     "name": "PromoterLink",
     "slug": "PromoterLink",
+    "scheme": "Promoterlink",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -20,10 +21,16 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "package": "com.promoterLink.version_1",
       "edgeToEdgeEnabled": true
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "packagerOpts": {
+      "config": "metro.config.js",
+      "sourceExts": ["js", "jsx", "json", "ts", "tsx", "cjs"]
     }
   }
 }

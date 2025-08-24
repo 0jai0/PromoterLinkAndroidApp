@@ -1,0 +1,99 @@
+/src
+  /api
+    config.js                # Axios base config, interceptors (token, errors)
+
+  /components
+    /ui                      # Reusable atoms (Button, Input, Card, Text)
+    /layout                  # Navigation bar, BottomTab, Header, Wrapper
+    /shared                  # Loader, ErrorBoundary, EmptyState
+
+  /features
+    /auth
+      screens/
+        LoginScreen.js
+        SignupScreen.js
+        ForgotPasswordScreen.js
+      auth.api.js             # login, register, forgot, Google login
+      authSlice.js            # Redux slice for auth state
+      useAuth.js              # hook to wrap auth logic
+    /home
+      screens/
+        HomeScreen.js
+      components/
+        InfluencerCard.js
+        LinkCoinCounter.js
+      home.api.js             # fetch dashboard stats
+      homeSlice.js
+      useHome.js
+    /influencers
+      screens/
+        InfluencerListScreen.js
+        InfluencerDetailScreen.js
+      components/
+        InfluencerProfileCard.js
+        FollowButton.js
+      influencers.api.js      # list, details, follow/unfollow
+      influencersSlice.js
+      useInfluencers.js
+    /messaging
+      screens/
+        ChatListScreen.js
+        ChatScreen.js
+      components/
+        MessageBubble.js
+        ContactCard.js
+      messaging.api.js        # get chats, send/receive messages
+      messagingSlice.js
+      useMessaging.js
+    /notifications
+      screens/
+        NotificationScreen.js
+      notifications.api.js
+      notificationsSlice.js
+      useNotifications.js
+    /payments
+      screens/
+        PaymentSuccessScreen.js
+        PaymentFailureScreen.js
+        BuyLinkCoinScreen.js
+      payments.api.js         # initiate, verify payments
+      paymentsSlice.js
+      usePayments.js
+    /profile
+      screens/
+        UserProfileScreen.js
+        EditProfileScreen.js
+        ViewProfileScreen.js
+      components/
+        ProfileHeader.js
+        ProfileForm.js
+      profile.api.js
+      profileSlice.js
+      useProfile.js
+    /about
+      screens/
+        AboutUsScreen.js
+
+  /navigation
+    AppNavigator.js           # Root switch (auth vs app)
+    AuthNavigator.js          # Login/Register flows
+    MainNavigator.js          # BottomTabs (Home, Messaging, Notifications, Profile)
+
+  /store
+    store.js                  # central Redux store
+
+  /hooks
+    useFetch.js               # generic fetching hook
+    useTheme.js               # dark/light theme
+    usePagination.js          # infinite scroll lists
+
+  /utils
+    formatDate.js
+    validators.js
+    constants.js
+    storage.js                # AsyncStorage helpers
+
+  /assets
+    /images
+    /fonts
+    /icons
