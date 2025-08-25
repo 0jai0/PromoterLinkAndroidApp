@@ -10,18 +10,16 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
-  ScrollView,
-  Modal,
-  BackHandler
+  Modal
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Send, Trash2, ArrowLeft, MoreVertical, User, Clock, AlertCircle } from 'lucide-react-native';
 import API from '../../api/config';
 import { useNavigation } from '@react-navigation/native';
+import { io } from "socket.io-client";   // ✅ socket.io-client instead of react-native-websocket
 
-// ContactList Component
+// ContactList Component with unread indicators
 const ContactList = ({ contacts, onSelectContact, onRemoveContact, activeContactId }) => {
-  // console.log(contacts);
   const handleRemove = (contactId, contactName) => {
     Alert.alert(
       "Remove Contact",
@@ -60,10 +58,14 @@ const ContactList = ({ contacts, onSelectContact, onRemoveContact, activeContact
                            `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(item.ownerName)}`
                     }}
                     className="w-12 h-12 rounded-full"
-                    
                   />
                   {item.isOnline && (
                     <View className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-900" />
+                  )}
+                  {item.hasUnread && (
+                    <View className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full justify-center items-center">
+                      <Text className="text-white text-xs font-bold">!</Text>
+                    </View>
                   )}
                 </View>
                 <View className="ml-3 flex-1">
@@ -111,19 +113,26 @@ const ChatWindow = ({ messages, currentUser, isExpired, onUpgrade, isLoading }) 
               : 'bg-gray-700 rounded-bl-none'
           }`}
         >
-          <Text className={isCurrentUser ? 'text-white' : 'text-white'}>
+          <Text className="text-white">
             {item.content}
           </Text>
-          <Text
-            className={`text-xs mt-1 ${
-              isCurrentUser ? 'text-blue-100' : 'text-gray-300'
-            }`}
-          >
-            {new Date(item.timestamp).toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-          </Text>
+          <View className="flex-row items-center justify-end mt-1">
+            <Text
+              className={`text-xs ${isCurrentUser ? 'text-blue-100' : 'text-gray-300'}`}
+            >
+              {new Date(item.timestamp).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </Text>
+            {isCurrentUser && (
+              <Text className="text-xs ml-2 text-blue-100">
+                {item.status === 'sending' ? 'Sending...' : 
+                 item.status === 'failed' ? 'Failed' : 
+                 item.messageStatus === 'read' ? 'Read' : 'Sent'}
+              </Text>
+            )}
+          </View>
         </View>
       </View>
     );
@@ -164,7 +173,7 @@ const ChatWindow = ({ messages, currentUser, isExpired, onUpgrade, isLoading }) 
           ref={flatListRef}
           data={messages}
           renderItem={renderMessage}
-          keyExtractor={(item, index) => index.toString()}
+          keyExtractor={(item, index) => `${item._id || index}-${item.timestamp}`}
           contentContainerStyle={{ paddingBottom: 16 }}
         />
       )}
@@ -173,7 +182,7 @@ const ChatWindow = ({ messages, currentUser, isExpired, onUpgrade, isLoading }) 
 };
 
 // MessageInput Component
-const MessageInput = ({ onSend, isExpired, isLoading }) => {
+const MessageInput = ({ onSend, isExpired, isLoading, isConnected }) => {
   const [message, setMessage] = useState('');
 
   const handleSend = () => {
@@ -199,6 +208,13 @@ const MessageInput = ({ onSend, isExpired, isLoading }) => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="bg-gray-800 p-4 border-t border-gray-700"
     >
+      {!isConnected && (
+        <View className="bg-amber-500/20 p-2 rounded-lg mb-2">
+          <Text className="text-amber-300 text-xs text-center">
+            Connection issues. Messages may be delayed.
+          </Text>
+        </View>
+      )}
       <View className="flex-row items-center">
         <TextInput
           className="flex-1 bg-gray-700 text-white rounded-full px-4 py-3 mr-2"
@@ -209,16 +225,16 @@ const MessageInput = ({ onSend, isExpired, isLoading }) => {
           onSubmitEditing={handleSend}
           multiline
           maxLength={500}
-          editable={!isLoading}
+          editable={!isLoading && isConnected}
         />
         <TouchableOpacity
           onPress={handleSend}
-          disabled={!message.trim() || isLoading}
+          disabled={!message.trim() || isLoading || !isConnected}
           className={`p-3 rounded-full ${
-            message.trim() && !isLoading ? 'bg-blue-500' : 'bg-gray-600'
+            message.trim() && !isLoading && isConnected ? 'bg-blue-500' : 'bg-gray-600'
           }`}
         >
-          <Send size={24} color={message.trim() && !isLoading ? 'white' : '#9ca3af'} />
+          <Send size={24} color={message.trim() && !isLoading && isConnected ? 'white' : '#9ca3af'} />
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -234,187 +250,155 @@ const ChatScreen = () => {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlert] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const socketRef = useRef(null);
   const navigation = useNavigation();
 
-  useEffect(() => {
-    if (user?._id) {
-      fetchContacts();
-    }
+  // ✅ Connect socket.io
+  const connectSocket = useCallback(() => {
+    if (!user?._id) return;
+
+    const socket = io("https://influencerlink-446936445912.asia-south1.run.app", {
+      transports: ["websocket"],
+      query: { userId: user._id }
+    });
+
+    socketRef.current = socket;
+
+    socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+      setIsConnected(true);
+      socket.emit("join", user._id);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Socket disconnected");
+      setIsConnected(false);
+    });
+
+    socket.on("receive_message", (data) => {
+      // console.log("Message received:", data);
+      handleIncomingMessage(data);
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("Socket connect error:", err.message);
+      setIsConnected(false);
+    });
   }, [user]);
 
+  useEffect(() => {
+    connectSocket();
+    fetchContacts();
+
+    return () => {
+      if (socketRef.current) socketRef.current.disconnect();
+    };
+  }, [connectSocket]);
+
+  // Incoming message handler
+  const handleIncomingMessage = (messageData) => {
+    // Normalize message object (make sure it has _id and timestamp)
+  const newMessage = {
+    _id: messageData._id || Date.now().toString(), // fallback if backend didn’t send _id
+    content: messageData.content,
+    sender: messageData.sender,
+    receiver: messageData.receiver,
+    timestamp: messageData.timestamp || new Date().toISOString(),
+    status: messageData.status || "received",
+  };
+
+  if (activeContact && newMessage.sender === activeContact.user._id) {
+    setMessages(prev => [...prev, newMessage]);
+  }
+
+  setContacts(prev =>
+    prev.map(contact =>
+      contact.user._id === newMessage.sender
+        ? { ...contact, hasUnread: contact.user._id !== activeContact?.user._id }
+        : contact
+    )
+  );
+};
+
+  // Send Message
+  const handleSendMessage = (text) => {
+    if (!text.trim()) return;
+
+  const newMessage = {
+    sender: user._id,
+    receiver: activeContact.user._id,
+    content: text,
+    timestamp: new Date().toISOString(),
+    status: "sent",
+    messageStatus: "unread",
+  };
+
+  setMessages((prev) => [...prev, newMessage]);
+
+  // emit to server
+  socketRef.current.emit("send_message", newMessage, (ack) => {
+    // console.log("Server ACK:", ack);
+  });
+};
+
+  // Fetch Contacts
   const fetchContacts = async () => {
     try {
       setIsLoading(true);
       const response = await API.get(`/api/collection/users/${user._id}`);
       if (response.data.collections) {
-        const validContacts = response.data.collections.filter(
-          item => item.user && typeof item.user === 'object'
-        ).map(item => ({
-          ...item,
-          id: item.user._id,
-          ownerName: item.user?.ownerName,
-          profilePicUrl: item.user?.profilePicUrl,
-          isOnline: item.user?.isOnline
-        }));
+        const validContacts = response.data.collections
+          .filter(item => item.user && typeof item.user === 'object')
+          .map(item => ({
+            ...item,
+            id: item.user._id,
+            ownerName: item.user?.ownerName,
+            profilePicUrl: item.user?.profilePicUrl,
+            isOnline: item.user?.isOnline,
+            hasUnread: item.unreadCount > 0
+          }));
         setContacts(validContacts);
-      } else {
-        setContacts([]);
       }
     } catch (error) {
       console.error("Error fetching contacts:", error);
-      Alert.alert("Error", "Failed to load contacts");
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Load Conversation
   const loadConversation = async (contact) => {
     try {
       setIsLoading(true);
       setActiveContact(contact);
-      
+
       const response = await API.get(`/api/messages/conversation/${user._id}/${contact.user._id}`);
-      
       if (response.data.conversation) {
         setMessages(response.data.conversation);
       } else {
         setMessages([]);
       }
-      
-      // Mark messages as read
-      await API.patch('/api/messages/mark-read', {
-        sender: contact.user._id,
-        receiver: user._id,
-      });
-      
+
+      // reset unread
+      setContacts(prev =>
+        prev.map(c => c.user._id === contact.user._id ? { ...c, hasUnread: false } : c)
+      );
     } catch (error) {
       console.error("Error loading conversation:", error);
-      Alert.alert("Error", "Failed to load conversation");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSendMessage = async (messageContent) => {
-    if (!user._id || !activeContact) return;
-
-    const newMessage = {
-      sender: user._id,
-      receiver: activeContact.user._id,
-      content: messageContent,
-      timestamp: new Date().toISOString(),
-    };
-
-    try {
-      // Optimistically add message to UI
-      setMessages(prev => [...prev, { ...newMessage, status: "sending" }]);
-      
-      // Send message via API
-      const response = await API.post('/api/messages/send', newMessage);
-      
-      if (response.status === 200) {
-        // Update message status to sent
-        setMessages(prev => 
-          prev.map(msg => 
-            msg.status === "sending" ? { ...msg, status: "sent" } : msg
-          )
-        );
-        
-        // Send notification
-        await API.post('/api/notifications/send-message', {
-          sender: user.ownerName,
-          receiver: activeContact.user._id,
-          message: messageContent,
-        });
-      }
-    } catch (error) {
-      console.error("Error sending message:", error);
-      // Update message status to failed
-      setMessages(prev => 
-        prev.map(msg => 
-          msg.status === "sending" ? { ...msg, status: "failed" } : msg
-        )
-      );
-      Alert.alert("Error", "Failed to send message");
-    }
-  };
-
-  const handleRemoveFromList = async (contactId) => {
-    try {
-      await API.post('/api/collection/users/remove', {
-        userId: user._id,
-        targetUserId: contactId,
-      });
-      
-      // Refresh contacts list
-      fetchContacts();
-      
-      // If the removed contact is the active one, clear the chat
-      if (activeContact?.user._id === contactId) {
-        setActiveContact(null);
-        setMessages([]);
-      }
-    } catch (error) {
-      console.error("Error removing from collection:", error);
-      Alert.alert("Error", "Failed to remove contact");
-    }
-  };
-
-  const handleUpgrade = async () => {
-    if (!activeContact || !user?._id) {
-      Alert.alert("Error", "Active contact and User ID are required");
-      return;
-    }
-
-    if (user.linkCoins < 1) {
-      setAlert({
-        type: 'error',
-        message: 'Insufficient LinkCoins. Please purchase more.'
-      });
-      return;
-    }
-
-    setAlert({
-      type: 'confirm',
-      message: 'Spend 1 LinkCoin to renew this conversation for 7 more days. Are you sure?',
-      onConfirm: async () => {
-        try {
-          setIsLoading(true);
-          const response = await API.post('/api/collection/users/update', {
-            userId: user._id,
-            targetUserId: activeContact.user._id
-          });
-          
-          if (response.data.message === "Connection dates updated successfully") {
-            setAlert({
-              type: 'success',
-              message: 'Conversation renewed successfully!'
-            });
-            
-            // Refresh the contact to update the expiration status
-            fetchContacts();
-          } else {
-            setAlert({
-              type: 'error',
-              message: response.data.message || 'Failed to renew conversation.'
-            });
-          }
-        } catch (error) {
-          console.error("Upgrade failed:", error);
-          setAlert({
-            type: 'error',
-            message: error.response?.data?.message || 'Failed to renew conversation. Please try again.'
-          });
-        } finally {
-          setIsLoading(false);
-        }
-      },
-      onCancel: () => setAlert(null),
-    });
-  };
-
   return (
     <View className="flex-1 bg-gray-900">
+      {!isConnected && (
+        <View className="bg-amber-500 p-2">
+          <Text className="text-white text-center">Connecting...</Text>
+        </View>
+      )}
+
       {/* Header */}
       <View className="flex-row items-center justify-between p-4 bg-gray-800 border-b border-gray-700">
         <View className="flex-row items-center">
@@ -427,35 +411,6 @@ const ChatScreen = () => {
           <MoreVertical size={24} color="white" />
         </TouchableOpacity>
       </View>
-
-      {/* Alert Modal */}
-      <Modal visible={!!alert} transparent animationType="fade">
-        <View className="flex-1 justify-center items-center bg-black/70 p-5">
-          <View className="bg-gray-800 rounded-xl p-6 w-full max-w-md">
-            <Text className="text-white text-lg font-bold mb-4">
-              {alert?.type === 'error' ? 'Error' : 
-               alert?.type === 'success' ? 'Success' : 'Confirmation'}
-            </Text>
-            <Text className="text-gray-300 mb-6">{alert?.message}</Text>
-            <View className="flex-row justify-end space-x-3">
-              {(alert?.type === 'confirm') && (
-                <TouchableOpacity 
-                  onPress={alert?.onCancel}
-                  className="px-4 py-2 rounded-lg bg-gray-700"
-                >
-                  <Text className="text-white">Cancel</Text>
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity 
-                onPress={alert?.onConfirm || (() => setAlert(null))}
-                className="px-4 py-2 rounded-lg bg-blue-500"
-              >
-                <Text className="text-white">{alert?.type === 'confirm' ? 'Confirm' : 'OK'}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
 
       {/* Sidebar Modal */}
       <Modal visible={isSidebarOpen} animationType="slide">
@@ -472,10 +427,9 @@ const ChatScreen = () => {
               loadConversation(contact);
               setIsSidebarOpen(false);
             }}
-            onRemoveContact={handleRemoveFromList}
+            onRemoveContact={() => {}}
             activeContactId={activeContact?.id}
           />
-          
         </View>
       </Modal>
 
@@ -505,7 +459,7 @@ const ChatScreen = () => {
               messages={messages} 
               currentUser={user} 
               isExpired={activeContact?.isExpired} 
-              onUpgrade={handleUpgrade}
+              onUpgrade={() => {}}
               isLoading={isLoading}
             />
 
@@ -514,6 +468,7 @@ const ChatScreen = () => {
               onSend={handleSendMessage} 
               isExpired={activeContact?.isExpired}
               isLoading={isLoading}
+              isConnected={isConnected}
             />
           </>
         ) : (
@@ -529,17 +484,10 @@ const ChatScreen = () => {
                 ? 'Choose a contact from the sidebar to start chatting' 
                 : 'You don\'t have any contacts yet'}
             </Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Home')}
-              className="bg-blue-500 px-6 py-3 rounded-full"
-            >
-              <Text className="text-white font-bold">Find People</Text>
-            </TouchableOpacity>
           </View>
         )}
       </View>
 
-      {/* Loading Overlay */}
       {isLoading && (
         <View className="absolute inset-0 justify-center items-center bg-black/50">
           <ActivityIndicator size="large" color="#3b82f6" />
