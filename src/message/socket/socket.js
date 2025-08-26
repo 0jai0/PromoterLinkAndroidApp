@@ -22,7 +22,7 @@ export const initSocket = (userId, onMessage, onConnect, onDisconnect, onError) 
   });
 
   socket.on("receive_message", (data) => {
-    console.log("📩 Message received:", data);
+    // console.log("📩 Message received:", data);
     onMessage && onMessage(data);
   });
 

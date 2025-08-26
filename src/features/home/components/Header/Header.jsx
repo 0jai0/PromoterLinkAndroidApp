@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 const Header = ({ user, navigation }) => {
   return (
-    <View className="mb-5 pt-8">
+    <View className="mb-5 pt-2">
       <View className="flex-row justify-between items-center">
         {/* Logo and app name on the left */}
         <View className="flex-row items-center">

@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { ArrowLeft, MoreVertical, Users, ChevronLeft } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import API from '../../api/config';
-
+import { useRoute } from "@react-navigation/native";
 // Components
 import ContactList from '../components/ContactList';
 import ChatWindow from '../components/ChatWindow';
@@ -22,6 +22,25 @@ const ChatScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const navigation = useNavigation();
+  const route = useRoute();
+
+  useEffect(() => {
+  if (!route.params?.userId) return;
+
+  (async () => {
+    const updatedContacts = await fetchContacts();
+    setIsSidebarOpen(false);
+
+    const contactToOpen = updatedContacts.find(c => c.id === route.params.userId);
+    // console.log("sfsgv", contactToOpen);
+    setActiveContact(contactToOpen);
+    if (contactToOpen) {
+      
+      // console.log("Opening chat with:", contactToOpen.ownerName);
+      loadConversation(contactToOpen);
+    }
+  })();
+}, [route.params?.userId]);
 
   // Setup socket
   useEffect(() => {
@@ -117,6 +136,7 @@ const ChatScreen = () => {
             hasUnread: item.unreadCount > 0
           }));
         setContacts(validContacts);
+        return validContacts;
       }
     } catch (error) {
       console.error("Error fetching contacts:", error);
@@ -131,9 +151,11 @@ const ChatScreen = () => {
 
   const loadConversation = async (contact) => {
     if (!contact?.id || !user?._id) return;
+    console.log("Loading conversation:", user._id, contact.id);
 
     try {
       setIsLoading(true);
+      console.log("kjhjhk",contact);
       setActiveContact(contact);
 
       const response = await API.get(
