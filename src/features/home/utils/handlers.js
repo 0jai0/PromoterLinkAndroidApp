@@ -8,13 +8,13 @@ export const handleAddToList = async (
   fetchContacts,
   fetchUsers
 ) => {
-  if (!currentUser?.id || !targetUser?._id) {
+  if (!currentUser?._id || !targetUser?._id) {
     console.error("Both User ID and Target User ID are required");
     setAlert({ type: 'error', message: 'User information is missing' });
     return;
   }
 
-  const isAlreadyInContacts = contacts.some(contact => contact.user?.id === targetUser._id);
+  const isAlreadyInContacts = contacts.some(contact => contact.user?._id === targetUser._id);
   if (isAlreadyInContacts) {
     setAlert({ type: 'info', message: 'This user is already in your list.' });
     return;
@@ -56,14 +56,15 @@ export const handleChatNow = async (
   fetchUsers
 ) => {
   try {
-    const isAlreadyInContacts = contacts.some(contact => contact.user?.id === targetUser._id);
+    const isAlreadyInContacts = contacts.some(contact => contact.user?._id === targetUser._id);
+    // console.log(isAlreadyInContacts);
     if (isAlreadyInContacts) {
-      navigation.navigate('MessagingApp', { userId: currentUser.id });
+      navigation.navigate('Messaging', { userId: targetUser._id });
       return;
     }
     
     await handleAddToList(targetUser, currentUser, contacts, setAlert, fetchContacts, fetchUsers);
-    navigation.navigate('MessagingApp', { userId: currentUser.id });
+    navigation.navigate('Messaging', { userId: targetUser._id });
   } catch (error) {
     console.error("Error in handleChatNow:", error);
     setAlert({ type: 'error', message: 'Failed to start chat. Please try again.' });
