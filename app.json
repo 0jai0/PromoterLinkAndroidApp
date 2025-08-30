@@ -21,6 +21,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "googleServicesFile": "./google-services.json",
       "package": "com.promoterLink.version_1",
       "edgeToEdgeEnabled": true
     },
@@ -30,7 +31,19 @@
     },
     "packagerOpts": {
       "config": "metro.config.js",
-      "sourceExts": ["js", "jsx", "json", "ts", "tsx", "cjs"]
+      "sourceExts": [
+        "js",
+        "jsx",
+        "json",
+        "ts",
+        "tsx",
+        "cjs"
+      ]
+    },
+    "extra": {
+      "eas": {
+        "projectId": "c0d559d1-bbd2-4b0b-beb7-2b98cad69d93"
+      }
     }
   }
 }

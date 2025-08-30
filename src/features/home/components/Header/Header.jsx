@@ -4,6 +4,62 @@ import { logo } from "../../../../utils/images";
 import { Ionicons } from "@expo/vector-icons";
 
 const Header = ({ user, navigation }) => {
+  // Calculate profile completion percentage
+  const calculateProfileCompletion = () => {
+    if (!user) return 0;
+    
+    let completedFields = 0;
+    const totalFields = 18; // Total fields we're checking
+    
+    // Basic info fields
+    if (user.ownerName) completedFields++;
+    if (user.profilePicUrl) completedFields++;
+    if (user.mobile) completedFields++;
+    if (user.whatsapp) completedFields++;
+    if (user.role) completedFields++;
+    
+    // Social media platforms
+    if (user.socialMediaPlatforms && user.socialMediaPlatforms.length > 0) completedFields++;
+    
+    // Profile details (count as 5 fields)
+    if (user.profileDetails && user.profileDetails.length > 0) {
+      // Check if at least one profile detail is filled
+      const hasProfileDetails = user.profileDetails.some(profile => 
+        profile.platform || profile.profileName || profile.followers > 0
+      );
+      if (hasProfileDetails) completedFields += 5;
+    }
+    
+    // Categories and audience info
+    if (user.adCategories && user.adCategories.length > 0) completedFields++;
+    if (user.pageContentCategory && user.pageContentCategory.length > 0) completedFields++;
+    if (user.averageAudienceType && user.averageAudienceType.length > 0) completedFields++;
+    if (user.averageLocationOfAudience && user.averageLocationOfAudience.length > 0) completedFields++;
+    
+    // Pricing info (count as 3 fields)
+    if (user.pricing) {
+      if (user.pricing.storyPost) completedFields++;
+      if (user.pricing.feedPost) completedFields++;
+      if (user.pricing.reel) completedFields++;
+    }
+    
+    // Past posts
+    if (user.pastPosts && user.pastPosts.length > 0) completedFields++;
+    
+    return Math.round((completedFields / totalFields) * 100);
+  };
+
+  const completionPercentage = calculateProfileCompletion();
+
+  // Navigate to UpdateProfile screen correctly
+  const navigateToUpdateProfile = () => {
+    // Since UpdateProfile is nested inside ProfileNavigator, we need to navigate to Profile first
+    // then navigate to UpdateProfile within that navigator
+    navigation.navigate("Profile", { 
+      screen: "UpdateProfile" 
+    });
+  };
+
   return (
     <View className="mb-5 pt-2">
       <View className="flex-row justify-between items-center">
@@ -20,7 +76,7 @@ const Header = ({ user, navigation }) => {
         {/* Messenger icon on the right */}
         <TouchableOpacity
           className="relative"
-          onPress={() => navigation.navigate("Messaging")} // ✅ works now
+          onPress={() => navigation.navigate("Messaging")}
         >
           <View className="w-10 h-10 bg-slate-100 rounded-lg items-center justify-center border border-slate-200">
             <Ionicons name="chatbubble-ellipses" size={22} color="#3B82F6" />
@@ -42,6 +98,34 @@ const Header = ({ user, navigation }) => {
           </Text>
         </Text>
       </View>
+
+      {/* Profile completion indicator */}
+      {completionPercentage < 100 && (
+        <View className="mt-3 ml-12">
+          <View className="flex-row justify-between items-center mb-1">
+            <Text className="text-slate-600 text-xs font-medium">
+              Profile Completion
+            </Text>
+            <Text className="text-slate-600 text-xs font-medium">
+              {completionPercentage}%
+            </Text>
+          </View>
+          <View className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+            <View 
+              className="h-full bg-blue-500 rounded-full" 
+              style={{ width: `${completionPercentage}%` }}
+            />
+          </View>
+          <TouchableOpacity 
+            onPress={navigateToUpdateProfile}
+            className="mt-1"
+          >
+            <Text className="text-blue-500 text-xs font-medium">
+              Complete your profile →
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };
