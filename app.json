@@ -2,7 +2,7 @@
   "expo": {
     "name": "PromoterLink",
     "slug": "PromoterLink",
-    "scheme": "Promoterlink",
+    "scheme": "PromoterLink",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -44,6 +44,16 @@
       "eas": {
         "projectId": "c0d559d1-bbd2-4b0b-beb7-2b98cad69d93"
       }
-    }
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "googleServicesFile": "./google-services.json"
+          }
+        }
+      ]
+    ]
   }
 }

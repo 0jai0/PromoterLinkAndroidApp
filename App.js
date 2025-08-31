@@ -1,3 +1,6 @@
+import { enableScreens } from "react-native-screens";
+enableScreens();
+
 import { NavigationContainer } from "@react-navigation/native";
 import { Provider, useSelector } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
@@ -13,29 +16,26 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 function MainApp() {
   const { user, isAuthenticated } = useSelector((state) => state.auth);
 
-  
-useEffect(() => {
-  const setupNotifications = async () => {
-    if (!isAuthenticated || !user?._id) return;
+  useEffect(() => {
+    const setupNotifications = async () => {
+      if (!isAuthenticated || !user?._id) return;
 
-    const token = await registerForPushNotificationsAsync();
-    if (!token) return;
+      const token = await registerForPushNotificationsAsync();
+      if (!token) return;
 
-    // check if already stored
-    const storedToken = await AsyncStorage.getItem(`fcmToken_${user._id}`);
+      const storedToken = await AsyncStorage.getItem(`fcmToken_${user._id}`);
 
-    if (storedToken !== token) {
-      await storeUserToken(user._id, token); // ✅ send logged-in userId
-      await AsyncStorage.setItem(`fcmToken_${user._id}`, token); // save for future
-      console.log("📌 Token stored for first time:", token);
-    } else {
-      console.log("✅ Token already stored, skipping...");
-    }
-  };
+      if (storedToken !== token) {
+        await storeUserToken(user._id, token);
+        await AsyncStorage.setItem(`fcmToken_${user._id}`, token);
+        console.log("📌 Token stored for first time:", token);
+      } else {
+        console.log("✅ Token already stored, skipping...");
+      }
+    };
 
-  setupNotifications();
-}, [isAuthenticated, user?._id]);
-
+    setupNotifications();
+  }, [isAuthenticated, user?._id]);
 
   return (
     <NavigationContainer>

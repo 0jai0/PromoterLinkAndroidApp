@@ -31,12 +31,7 @@ export async function registerForPushNotificationsAsync() {
   }
 
   // 🔹 Get FCM token (requires EAS Build, not Expo Go)
-  const token = (
-    await Notifications.getExpoPushTokenAsync({
-      projectId: Constants.expoConfig.extra.eas.projectId, // app.json → extra.eas.projectId
-    })
-  ).data;
-
-//   console.log("📲 FCM Token:", token);
+  const token = (await Notifications.getDevicePushTokenAsync()).data;
+  console.log("📲 Native FCM Token:", token);
   return token;
 }

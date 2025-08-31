@@ -4,7 +4,7 @@ const API_BASE = "https://influencerlink-446936445912.asia-south1.run.app/api/no
 
 export async function storeUserToken(userId, fcmToken) {
   try {
-    const res = await notificationApi.storeToken({ userId, token });
+    const res = await notificationApi.storeToken({ userId, token:fcmToken });
     // console.log("✅ Token stored:", res.data);
     return res.data;
   } catch (err) {
