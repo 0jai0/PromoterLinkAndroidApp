@@ -37,7 +37,7 @@ const ProfileScreen = () => {
       "Are you sure you want to logout?",
       [
         {
-          text: "Cancel",
+          text: "Stay Logged In",
           style: "cancel"
         },
         {
@@ -80,13 +80,7 @@ const ProfileScreen = () => {
       id: "password",
       title: "Change Password",
       icon: "lock-closed-outline",
-      onPress: () => navigation.navigate("ChangePassword")
-    },
-    {
-      id: "settings",
-      title: "Settings",
-      icon: "settings-outline",
-      onPress: () => navigation.navigate("Settings")
+      onPress: () => navigation.navigate("ForgotPassword")
     },
     {
       id: "privacy",

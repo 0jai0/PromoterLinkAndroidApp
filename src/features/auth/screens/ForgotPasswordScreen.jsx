@@ -37,7 +37,7 @@ export default function ForgotPasswordScreen({ navigation }) {
       setLoading(true);
       setError("");
       
-      await API.post("/otp/send-otpFP", { 
+      await API.post("/api/otp/send-otpFP", { 
         userId: email.toLowerCase() 
       });
 
@@ -64,7 +64,7 @@ export default function ForgotPasswordScreen({ navigation }) {
       setLoading(true);
       setError("");
       
-      const response = await API.get("/otp/userId", {
+      const response = await API.get("/api/otp/userId", {
         params: {
           userId: email.toLowerCase(),
         },
@@ -104,7 +104,7 @@ export default function ForgotPasswordScreen({ navigation }) {
       setLoading(true);
       setError("");
       
-      await API.post("/pageowners/forget-password", {
+      await API.post("/api/pageowners/forget-password", {
         email: email.toLowerCase(),
         newPassword
       });
