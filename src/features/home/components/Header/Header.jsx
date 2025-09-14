@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Image } from "react-native";
-import { logo } from "../../../../utils/images";
+import { logov1 } from "../../../../utils/images";
 import { Ionicons } from "@expo/vector-icons";
 
 const Header = ({ user, navigation }) => {
@@ -65,12 +65,10 @@ const Header = ({ user, navigation }) => {
       <View className="flex-row justify-between items-center">
         {/* Logo and app name on the left */}
         <View className="flex-row items-center">
-          <View className="w-9 h-9 rounded-xl bg-gray-300 items-center justify-center shadow-xs">
-            <Image source={logo} className="w-7 h-7" resizeMode="contain" />
+          <View className="w-9 h-9 pl-24 rounded-xl items-center justify-center shadow-xs">
+            <Image source={logov1} className="w-52 h-52" resizeMode="contain" />
           </View>
-          <Text className="text-2xl font-bold text-slate-800 ml-3">
-            PromoterLink
-          </Text>
+
         </View>
 
         {/* Messenger icon on the right */}

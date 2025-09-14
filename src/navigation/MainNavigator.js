@@ -8,6 +8,7 @@ import ProfileNavigator from "./ProfileNavigator";
 import ViewProfile from "../features/profile/screens/ViewProfile";
 import ChatScreen from "../message/screen/ChatScreen";
 import NotificationScreen from "../features/notifications/screens/NotificationScreen";
+import BadgeExplanationScreen from "../features/home/screens/BadgeExplanationScreen";
 const Stack = createNativeStackNavigator();
 
 export default function MainNavigator() {
@@ -17,6 +18,7 @@ export default function MainNavigator() {
       screenOptions={{ headerShown: false }}
     >
       <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="BadgeExplanation" component={BadgeExplanationScreen} />
       <Stack.Screen name="Notifications" component={NotificationScreen} />
       <Stack.Screen name="Profile" component={ProfileNavigator}/>
       <Stack.Screen name="ViewProfile" component={ViewProfile} />

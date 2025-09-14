@@ -5,11 +5,11 @@
     "scheme": "PromoterLink",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logov3.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/logov4.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -18,42 +18,68 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/logov4.png",
         "backgroundColor": "#ffffff"
       },
       "googleServicesFile": "./google-services.json",
       "package": "com.promoterLink.version_1",
-      "edgeToEdgeEnabled": true
-    },
-    "web": {
-      "favicon": "./assets/favicon.png",
-      "bundler": "metro"
-    },
-    "packagerOpts": {
-      "config": "metro.config.js",
-      "sourceExts": [
-        "js",
-        "jsx",
-        "json",
-        "ts",
-        "tsx",
-        "cjs"
+      "edgeToEdgeEnabled": true,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "PromoterLink",
+              "host": "*",
+              "pathPrefix": "/"
+            },
+            {
+              "scheme": "https",
+              "host": "PromoterLink.com",
+              "pathPrefix": "/"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
       ]
     },
     "extra": {
       "eas": {
         "projectId": "c0d559d1-bbd2-4b0b-beb7-2b98cad69d93"
       }
-    },
-    "plugins": [
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "googleServicesFile": "./google-services.json"
-          }
-        }
-      ]
+    }
+  },
+  "web": {
+    "favicon": "./assets/logov3.png",
+    "bundler": "metro"
+  },
+  "packagerOpts": {
+    "config": "metro.config.js",
+    "sourceExts": [
+      "js",
+      "jsx",
+      "json",
+      "ts",
+      "tsx",
+      "cjs"
     ]
-  }
+  },
+  "extra": {
+    "eas": {
+      "projectId": "c0d559d1-bbd2-4b0b-beb7-2b98cad69d93"
+    }
+  },
+  "plugins": [
+    [
+      "expo-build-properties",
+      {
+        "android": {
+          "googleServicesFile": "./google-services.json"
+        }
+      }
+    ]
+  ]
 }

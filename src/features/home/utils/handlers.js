@@ -6,43 +6,63 @@ export const handleAddToList = async (
   contacts,
   setAlert,
   fetchContacts,
-  fetchUsers
+  fetchUsers,
+  initialAlertState
 ) => {
+  console.log(currentUser?._id , targetUser?._id);
   if (!currentUser?._id || !targetUser?._id) {
     console.error("Both User ID and Target User ID are required");
-    setAlert({ type: 'error', message: 'User information is missing' });
+    setAlert({visible: true, type: 'error',title: "Notice", message: 'User information is missing' });
     return;
   }
 
   const isAlreadyInContacts = contacts.some(contact => contact.user?._id === targetUser._id);
   if (isAlreadyInContacts) {
-    setAlert({ type: 'info', message: 'This user is already in your list.' });
+    setAlert({visible: true, type: 'info',title: "Notice", message: 'This user is already in your list.' });
     return;
   }
 
   if (currentUser.linkCoins < 1) {
-    setAlert({ type: 'error', message: 'Insufficient LinkCoins. Please purchase more.' });
+    setAlert({visible: true, type: 'error',title: "Notice", message: 'Insufficient LinkCoins. Please purchase more.' });
     return;
   }
 
   setAlert({
+    visible: true,
     type: 'confirm',
+    title: "Notice",
     message: 'Spend 1 LinkCoin to add this user to your list. Are you sure?',
     onConfirm: async () => {
       try {
-        await addToContacts(currentUser.id, targetUser._id);
-        setAlert({ type: 'success', message: 'User added to collection successfully!' });
-        
+        await addToContacts(currentUser._id, targetUser._id);
+        setTimeout(() => {
+          setAlert({
+            ...initialAlertState,
+            visible: true,
+            type: 'success',
+            title: "Notice",
+            message: 'User added to collection successfully!'
+          });
+        }, 0);
+
         // Refresh data
         if (fetchContacts) await fetchContacts();
         if (fetchUsers) await fetchUsers();
       } catch (error) {
         console.error("Error adding to collection:", error);
         const errorMessage = error.response?.data?.message || 'Failed to add user. Please try again.';
-        setAlert({ type: 'error', message: errorMessage });
+        setTimeout(() => {
+          setAlert({
+            ...initialAlertState,
+            visible: true,
+            type: 'error',
+            title: "Notice",
+            message: errorMessage
+          });
+        }, 0);
       }
     },
-    onCancel: () => setAlert(null)
+    onCancel: () => setAlert(initialAlertState)
   });
 };
 
@@ -53,7 +73,8 @@ export const handleChatNow = async (
   navigation,
   setAlert,
   fetchContacts,
-  fetchUsers
+  fetchUsers,
+  initialAlertState
 ) => {
   try {
     const isAlreadyInContacts = contacts.some(contact => contact.user?._id === targetUser._id);
@@ -63,10 +84,18 @@ export const handleChatNow = async (
       return;
     }
     
-    await handleAddToList(targetUser, currentUser, contacts, setAlert, fetchContacts, fetchUsers);
+    await handleAddToList(targetUser, currentUser, contacts, setAlert, fetchContacts, fetchUsers, initialAlertState);
     navigation.navigate('Messaging', { userId: targetUser._id });
   } catch (error) {
     console.error("Error in handleChatNow:", error);
-    setAlert({ type: 'error', message: 'Failed to start chat. Please try again.' });
+    setTimeout(() => {
+          setAlert({
+            ...initialAlertState,
+            visible: true,
+            type: 'error',
+            title: "Notice",
+            message: errorMessage
+          });
+        }, 0);
   }
 };

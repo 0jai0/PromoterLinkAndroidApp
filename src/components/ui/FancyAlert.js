@@ -8,6 +8,8 @@ const FancyAlert = ({
   title, 
   message, 
   onClose, 
+  onConfirm, 
+  onCancel,
   duration = 4000,
   position = 'top'
 }) => {
@@ -16,7 +18,6 @@ const FancyAlert = ({
 
   useEffect(() => {
     if (visible) {
-      // Animate in
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
@@ -31,12 +32,15 @@ const FancyAlert = ({
         })
       ]).start();
 
-      // Auto close after duration
-      const timer = setTimeout(() => {
-        handleClose();
-      }, duration);
+      // Only auto-close if it's not a confirm dialog
+      let timer;
+      if (!onConfirm && !onCancel) {
+        timer = setTimeout(() => {
+          handleClose();
+        }, duration);
+      }
 
-      return () => clearTimeout(timer);
+      return () => timer && clearTimeout(timer);
     }
   }, [visible]);
 
@@ -60,40 +64,17 @@ const FancyAlert = ({
   const getIconAndColor = () => {
     switch (type) {
       case 'error':
-        return { 
-          icon: 'close-circle', 
-          color: '#EF4444', 
-          bgColor: '#FEF2F2',
-          iconColor: '#DC2626'
-        };
+        return { icon: 'close-circle', color: '#EF4444', bgColor: '#FEF2F2', iconColor: '#DC2626' };
       case 'success':
-        return { 
-          icon: 'checkmark-circle', 
-          color: '#10B981', 
-          bgColor: '#ECFDF5',
-          iconColor: '#059669'
-        };
+        return { icon: 'checkmark-circle', color: '#10B981', bgColor: '#ECFDF5', iconColor: '#059669' };
       case 'warning':
-        return { 
-          icon: 'warning', 
-          color: '#F59E0B', 
-          bgColor: '#FFFBEB',
-          iconColor: '#D97706'
-        };
+        return { icon: 'warning', color: '#F59E0B', bgColor: '#FFFBEB', iconColor: '#D97706' };
       case 'info':
-        return { 
-          icon: 'information-circle', 
-          color: '#3B82F6', 
-          bgColor: '#EFF6FF',
-          iconColor: '#2563EB'
-        };
+        return { icon: 'information-circle', color: '#3B82F6', bgColor: '#EFF6FF', iconColor: '#2563EB' };
+      case 'confirm':
+        return { icon: 'help-circle', color: '#6366F1', bgColor: '#EEF2FF', iconColor: '#4F46E5' };
       default:
-        return { 
-          icon: 'information-circle', 
-          color: '#3B82F6', 
-          bgColor: '#EFF6FF',
-          iconColor: '#2563EB'
-        };
+        return { icon: 'information-circle', color: '#3B82F6', bgColor: '#EFF6FF', iconColor: '#2563EB' };
     }
   };
 
@@ -115,10 +96,7 @@ const FancyAlert = ({
         flexDirection: 'row',
         alignItems: 'center',
         shadowColor: '#000',
-        shadowOffset: {
-          width: 0,
-          height: 4,
-        },
+        shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.15,
         shadowRadius: 12,
         elevation: 5,
@@ -136,17 +114,43 @@ const FancyAlert = ({
             {title}
           </Text>
         )}
-        <Text style={{ fontSize: 14, color: '#6B7280' }}>
+        <Text style={{ fontSize: 14, color: '#6B7280', marginBottom: onConfirm || onCancel ? 8 : 0 }}>
           {message}
         </Text>
+
+        {/* Render confirm/cancel buttons if provided */}
+        {(onConfirm || onCancel) && (
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 }}>
+            {onCancel && (
+              <TouchableOpacity
+                onPress={() => { onCancel(); handleClose(); }}
+                style={{ marginRight: 12, paddingVertical: 6, paddingHorizontal: 12 }}
+              >
+                <Text style={{ color: '#6B7280' }}>Cancel</Text>
+              </TouchableOpacity>
+            )}
+            {onConfirm && (
+              <TouchableOpacity
+                onPress={() => { onConfirm(); handleClose(); }}
+                style={{ backgroundColor: '#4F46E5', borderRadius: 6, paddingVertical: 6, paddingHorizontal: 12 }}
+              >
+                <Text style={{ color: '#fff', fontWeight: '600' }}>Confirm</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </View>
-      <TouchableOpacity 
-        onPress={handleClose} 
-        style={{ padding: 4, marginLeft: 8 }}
-        hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
-      >
-        <Ionicons name="close" size={20} color="#9CA3AF" />
-      </TouchableOpacity>
+
+      {/* Show close button only for non-confirm alerts */}
+      {!(onConfirm || onCancel) && (
+        <TouchableOpacity 
+          onPress={handleClose} 
+          style={{ padding: 4, marginLeft: 8 }}
+          hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
+        >
+          <Ionicons name="close" size={20} color="#9CA3AF" />
+        </TouchableOpacity>
+      )}
     </Animated.View>
   );
 };

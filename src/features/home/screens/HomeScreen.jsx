@@ -28,6 +28,8 @@ import { Ionicons } from "@expo/vector-icons";
 import Profile from "./Profile";
 import { coin_logo } from "../../../utils/images";
 import Draggable from "react-native-draggable";
+import FancyAlert from "../../../components/ui/FancyAlert"
+import PaymentPortal from "../../payments/PaymentPortal";
 
 const HomeScreen = ({ navigation }) => {
   //console.log("Navigation in HomeScreen:", navigation);
@@ -41,7 +43,15 @@ const HomeScreen = ({ navigation }) => {
     loading: authLoading,
   } = useSelector((state) => state.auth);
   const [searchTerm, setSearchTerm] = useState("");
-  const [alert, setAlert] = useState(null);
+  const initialAlertState = {
+  visible: false,
+  type: "info",
+  title: "",
+  message: "",
+  onConfirm: null,
+  onCancel: null
+};
+  const [alert, setAlert] = useState(initialAlertState);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -54,6 +64,7 @@ const HomeScreen = ({ navigation }) => {
   const [selectedLocations, setSelectedLocations] = useState([]);
   const [minFollowers, setMinFollowers] = useState("");
   const [maxFollowers, setMaxFollowers] = useState("");
+  
 
   // Check authentication on component mount
   useEffect(() => {
@@ -196,15 +207,17 @@ const HomeScreen = ({ navigation }) => {
   return (
     <AppLayout>
       <View className="flex-1 bg-slate-50">
-        {alert && (
-          <Alert
-            type={alert.type}
-            message={alert.message}
-            onClose={alert.onClose}
-            onConfirm={alert.onConfirm}
-            onCancel={alert.onCancel}
+        <FancyAlert
+          visible={alert.visible}
+          type={alert.type}
+          title={alert.title}
+          message={alert.message}
+          onClose={() => setAlert({ ...alert, visible: false })}
+          onConfirm={alert?.onConfirm}
+          onCancel={alert?.onCancel}
+          duration={4000}   // optional auto-close
+          position="top"    // or "bottom"
           />
-        )}
 
         <View className="pt-5 p-4 bg-slate-50 flex-1">
           {/* Header */}
@@ -360,6 +373,7 @@ const HomeScreen = ({ navigation }) => {
                       user={userItem}
                       contacts={contacts}
                       onSelect={handleUserSelect}
+                      navigation={navigation}
                       onAddToList={(targetUser) =>
                         handleAddToList(
                           targetUser,
@@ -367,7 +381,8 @@ const HomeScreen = ({ navigation }) => {
                           contacts,
                           setAlert,
                           refetchContacts,
-                          refetch
+                          refetch,
+                          initialAlertState
                         )
                       }
                       onChatNow={(targetUser) =>
@@ -378,7 +393,8 @@ const HomeScreen = ({ navigation }) => {
                           navigation,
                           setAlert,
                           refetchContacts,
-                          refetch
+                          refetch,
+                          initialAlertState
                         )
                       }
                     />
@@ -418,9 +434,6 @@ const HomeScreen = ({ navigation }) => {
                     className="w-8 h-8"
                     resizeMode="contain"
                   />
-                  <Text className="text-white font-bold ml-2">
-                    {user.linkCoins}
-                  </Text>
                   <Text className="text-white ml-1">LinkCoins</Text>
                 </TouchableOpacity>
               </Draggable>
@@ -433,19 +446,9 @@ const HomeScreen = ({ navigation }) => {
               animationType="fade"
               onRequestClose={() => setShowPayment(false)}
             >
-              <View className="flex-1 bg-black/70 justify-center items-center">
-                <View className="bg-[#202020] border border-gray-700 rounded-xl p-6 w-80">
-                  <Text className="text-white text-lg mb-4">
-                    Payment Screen
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => setShowPayment(false)}
-                    className="bg-[#1FFFE0] px-4 py-2 rounded-md"
-                  >
-                    <Text className="text-black font-bold">Close</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
+              {showPayment && (
+        <PaymentPortal setShowPayment={setShowPayment} />
+      )}
             </Modal>
 
         {/* Full Screen Profile Modal */}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   Alert,
   SafeAreaView,
   ActivityIndicator,
+  BackHandler,
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
@@ -39,54 +40,89 @@ const UpdateProfileScreen = () => {
     averageLocationOfAudience: user?.averageLocationOfAudience || [],
     pricing: user?.pricing || { storyPost: "", feedPost: "", reel: "" },
     pastPosts: user?.pastPosts || [],
-    profilePicUrl: user?.profilePicUrl || user?.profilePicture || "", // Changed to match backend
+    profilePicUrl: user?.profilePicUrl || user?.profilePicture || "",
   });
 
-  const handleSaveProfile = async () => {
-  try {
-    setSaving(true);
-    
-    // Prepare data for API - match backend field names
-    const apiData = {
-      ownerName: profile.ownerName,
-      mobile: profile.mobile,
-      whatsapp: profile.whatsapp,
-      socialMediaPlatforms: profile.socialMediaPlatforms || [],
-      profileDetails: profile.profileDetails || [],
-      adCategories: profile.adCategories || [],
-      pageContentCategory: profile.pageContentCategory || [],
-      averageAudienceType: profile.averageAudienceType || [],
-      averageLocationOfAudience: profile.averageLocationOfAudience || [],
-      pricing: {
-        storyPost: profile.pricing?.storyPost || "",
-        feedPost: profile.pricing?.feedPost || "",
-        reel: profile.pricing?.reel || "",
-      },
-      pastPosts: profile.pastPosts || [],
-      profilePicUrl: profile.profilePicUrl || "",
-    };
-    
-    // Use the updateUser thunk
-    const result = await dispatch(updateUser({
-      userId: user._id, 
-      updateData: apiData
-    })).unwrap();
-    
-    const responseData = result.response || result;
-    if (responseData.success) {
-      Alert.alert("Success", "Profile updated successfully!");
-      navigation.goBack();
+  // Handle hardware back button
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        if (currentStep > 0) {
+          setCurrentStep(currentStep - 1);
+          return true; // Prevent default behavior (exit app)
+        }
+        return false; // Allow default behavior (go back to previous screen)
+      }
+    );
+
+    return () => backHandler.remove();
+  }, [currentStep]);
+
+  // Handle navigation header back button
+  useEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <TouchableOpacity 
+          onPress={handleHeaderBackPress}
+          className="mr-4"
+        >
+          <Ionicons name="arrow-back" size={24} color="#3B82F6" />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, currentStep]);
+
+  const handleHeaderBackPress = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
     } else {
-      Alert.alert("Error", responseData.message || "Failed to update profile");
+      navigation.goBack();
     }
-  } catch (error) {
-    console.error("Update error details:", error);
-    console.error("Error response:", error.response?.data);
-    Alert.alert("Error", error.message || "An error occurred while updating your profile");
-  } finally {
-    setSaving(false);
-  }
-};
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      setSaving(true);
+      
+      const apiData = {
+        ownerName: profile.ownerName,
+        mobile: profile.mobile,
+        whatsapp: profile.whatsapp,
+        socialMediaPlatforms: profile.socialMediaPlatforms || [],
+        profileDetails: profile.profileDetails || [],
+        adCategories: profile.adCategories || [],
+        pageContentCategory: profile.pageContentCategory || [],
+        averageAudienceType: profile.averageAudienceType || [],
+        averageLocationOfAudience: profile.averageLocationOfAudience || [],
+        pricing: {
+          storyPost: profile.pricing?.storyPost || "",
+          feedPost: profile.pricing?.feedPost || "",
+          reel: profile.pricing?.reel || "",
+        },
+        pastPosts: profile.pastPosts || [],
+        profilePicUrl: profile.profilePicUrl || "",
+      };
+      
+      const result = await dispatch(updateUser({
+        userId: user._id, 
+        updateData: apiData
+      })).unwrap();
+      
+      const responseData = result.response || result;
+      if (responseData.success) {
+        Alert.alert("Success", "Profile updated successfully!");
+        navigation.goBack();
+      } else {
+        Alert.alert("Error", responseData.message || "Failed to update profile");
+      }
+    } catch (error) {
+      console.error("Update error details:", error);
+      Alert.alert("Error", error.message || "An error occurred while updating your profile");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const steps = [
     {
@@ -119,7 +155,7 @@ const UpdateProfileScreen = () => {
     <SafeAreaView className="flex-1 bg-slate-50">
       {/* Header */}
       <View className="bg-white px-4 py-4 flex-row items-center border-b border-slate-200">
-        <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4">
+        <TouchableOpacity onPress={handleHeaderBackPress} className="mr-4">
           <Ionicons name="arrow-back" size={24} color="#3B82F6" />
         </TouchableOpacity>
         <Text className="text-xl font-bold text-slate-800">Update Profile</Text>

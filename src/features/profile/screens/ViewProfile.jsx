@@ -204,10 +204,23 @@ const ViewProfile = () => {
             {/* Profile Info */}
             <View className="flex-col items-start">
               <View className="relative">
-                <Image
-                  source={{ uri: user.profilePicUrl || "https://via.placeholder.com/150" }}
-                  className="w-28 h-28 rounded-2xl border-2 border-blue-500"
-                />
+                <View className="w-28 h-28 rounded-2xl border-2 border-blue-500 bg-blue-100 flex items-center justify-center">
+                                  {user.profilePicUrl ? (
+                                    <Image
+                                      source={{ uri: user.profilePicUrl }}
+                                      className="w-full h-full rounded-2xl"
+                                      resizeMode="cover"
+                                      onError={(e) => console.log("Image failed to load")}
+                                    />
+                                  ) : (
+                                    <View className="flex items-center justify-center">
+                                      <Ionicons name="person" size={40} color="#3B82F6" />
+                                      <Text className="text-blue-600 text-xs mt-1 font-medium">
+                                        No Image
+                                      </Text>
+                                    </View>
+                                  )}
+                                </View>
                 <View className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1">
                   <Ionicons name="checkmark" size={16} color="white" />
                 </View>

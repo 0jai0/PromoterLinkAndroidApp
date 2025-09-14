@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, Image, Modal, ActivityIndicator, StatusBar } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Modal, ActivityIndicator,BackHandler, StatusBar } from 'react-native';
 import { useSelector } from 'react-redux';
 import { ArrowLeft, MoreVertical, Users, ChevronLeft } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import API from '../../api/config';
 import { useRoute } from "@react-navigation/native";
+import { Ionicons } from '@expo/vector-icons';
 // Components
 import ContactList from '../components/ContactList';
 import ChatWindow from '../components/ChatWindow';
@@ -23,6 +24,21 @@ const ChatScreen = () => {
   const [isConnected, setIsConnected] = useState(false);
   const navigation = useNavigation();
   const route = useRoute();
+
+  React.useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+          return true; // Prevent default behavior
+        }
+        return false; // Allow default behavior (exit app)
+      }
+    );
+
+    return () => backHandler.remove();
+  }, [navigation]); // Add navigation to dependency array
 
   useEffect(() => {
   if (!route.params?.userId) return;
@@ -227,32 +243,27 @@ const ChatScreen = () => {
       </View>
 
       {/* Sidebar Modal */}
-      <Modal 
-        visible={isSidebarOpen} 
-        animationType="slide"
-        presentationStyle="pageSheet"
-      >
-        <View className="flex-1 bg-white">
-          <View className="flex-row items-center justify-between p-5 border-b border-gray-200">
-            <Text className="text-gray-900 text-xl font-bold">Contacts</Text>
-            <TouchableOpacity 
-              onPress={() => setIsSidebarOpen(false)}
-              className="p-2 rounded-full bg-gray-100"
-            >
-              <ChevronLeft size={22} color="#374151" />
-            </TouchableOpacity>
-          </View>
-          <ContactList
-            contacts={contacts}
-            onSelectContact={(contact) => {
-              loadConversation(contact);
-              setIsSidebarOpen(false);
-            }}
-            onRemoveContact={() => {}}
-            activeContactId={activeContact?._id}
-          />
-        </View>
-      </Modal>
+      {/* Sidebar Modal */}
+<Modal 
+  visible={isSidebarOpen} 
+  animationType="slide"
+  presentationStyle="pageSheet"
+  onRequestClose={() => setIsSidebarOpen(false)} // 👈 handle system back
+>
+  <View className="flex-1 bg-white">
+    <ContactList
+      contacts={contacts}
+      onSelectContact={(contact) => {
+        loadConversation(contact);
+        setIsSidebarOpen(false);
+      }}
+      onRemoveContact={() => {}}
+      activeContactId={activeContact?._id}
+      onBack={() => setIsSidebarOpen(false)} // 👈 close modal instead of navigation
+    />
+  </View>
+</Modal>
+
 
       {/* Chat Content */}
       <View className="flex-1">

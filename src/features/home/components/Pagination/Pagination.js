@@ -1,13 +1,28 @@
-import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import React, { useEffect } from "react";
+import { View, Text, TouchableOpacity, BackHandler } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 const Pagination = ({ page, totalPages, user, isAuthenticated, onPageChange, navigation }) => {
   const coinLimitedPages = Math.max(1, 10000);
   const actualMaxPages = Math.min(totalPages, coinLimitedPages);
 
+  useEffect(() => {
+    const backAction = () => {
+      if (page > 1) {
+        onPageChange(page - 1); // go to previous page instead of navigation back
+        return true; // prevent default back behavior
+      }
+      return false; // allow normal back if already on first page
+    };
+
+    const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
+
+    return () => backHandler.remove();
+  }, [page, onPageChange]);
+
   return (
     <View className="flex-row justify-center items-center my-6">
+      {/* Previous Button */}
       <TouchableOpacity
         className="px-4 py-3 bg-white border border-slate-200 rounded-xl mr-2 flex-row items-center shadow-xs"
         onPress={() => onPageChange(Math.max(1, page - 1))}
@@ -23,17 +38,19 @@ const Pagination = ({ page, totalPages, user, isAuthenticated, onPageChange, nav
         </Text>
       </TouchableOpacity>
       
+      {/* Page Counter */}
       <View className="bg-slate-100 px-4 py-2 rounded-lg mx-3">
         <Text className="text-slate-600 text-sm font-medium">
           Page {page} of {isAuthenticated && user ? actualMaxPages : 1}
         </Text>
       </View>
       
+      {/* Next Button */}
       <TouchableOpacity
         className="px-4 py-3 bg-white border border-slate-200 rounded-xl ml-2 flex-row items-center shadow-xs"
         onPress={() => {
           if (!isAuthenticated || !user) {
-            navigation.navigate('Login');
+            navigation.navigate("Login");
             return;
           }
           if (page < actualMaxPages) {
