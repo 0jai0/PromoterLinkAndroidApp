@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity,KeyboardAvoidingView, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { platforms } from '../../home/constants';
 
@@ -13,6 +13,7 @@ const SocialMediaStep = ({ profile, setProfile }) => {
   };
 
   return (
+    <KeyboardAvoidingView>
     <View className="bg-white p-4 rounded-lg border border-slate-200">
       <Text className="text-lg font-semibold text-slate-800 mb-4">
         Social Media Platforms
@@ -85,6 +86,7 @@ const SocialMediaStep = ({ profile, setProfile }) => {
                         profileDetails: updatedDetails,
                       });
                     }}
+                    editable={!detail.verified}
                     placeholder={`Your ${platform} username`}
                   />
                 </View>
@@ -127,6 +129,7 @@ const SocialMediaStep = ({ profile, setProfile }) => {
                         profileDetails: updatedDetails,
                       });
                     }}
+                    editable={!detail.verified}
                     placeholder={`https://${platform.toLowerCase()}.com/yourprofile`}
                   />
                 </View>
@@ -136,6 +139,7 @@ const SocialMediaStep = ({ profile, setProfile }) => {
         </View>
       )}
     </View>
+    </KeyboardAvoidingView>
   );
 };
 

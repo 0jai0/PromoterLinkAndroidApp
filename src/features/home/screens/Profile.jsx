@@ -406,7 +406,7 @@ const Profile = ({ user }) => {
                       source={{
                         uri:
                           profile.platform === "Instagram"
-                            ? "https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png"
+                            ? "https://cdn-icons-png.flaticon.com/512/2111/2111463.png"
                             : profile.platform === "Facebook"
                               ? "https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg"
                               : profile.platform === "Twitter"
@@ -419,9 +419,11 @@ const Profile = ({ user }) => {
                     />
                     <View className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 border border-gray-200">
                       <Ionicons
-                        name="checkmark-circle"
+                        name={
+                          profile.verified ? "checkmark-circle" : "close-circle"
+                        }
                         size={16}
-                        color="#10B981"
+                        color={profile.verified ? "#10B981" : "#EF4444"}
                       />
                     </View>
                   </View>

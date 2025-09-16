@@ -73,11 +73,11 @@ const ProfileScreen = () => {
     const encodedId = encodeURIComponent(user?._id);
     
     // Create universal link (if you have a web version)
-    const universalLink = `https://PromoterLink.com/PublicProfile?userId=${encodedId}&name=${encodedName}`;
+    const universalLink = `https://promoterlink.com/PublicProfile?userId=${encodedId}&name=${encodedName}`;
     
     // Create deep link as fallback
-    const deepLink = `PromoterLink://PublicProfile?userId=${encodedId}&name=${encodedName}`;
-    
+    const deepLink = `promoterlink://PublicProfile?userId=${encodedId}&name=${encodedName}`;
+    //console.log(deepLink);
     // Create message with both links
     const message = `Check out ${user?.ownerName || "my"} profile on PromoterLink!\n\n${universalLink}\n\nOr open in app: ${deepLink}`;
     

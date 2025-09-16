@@ -14,6 +14,10 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 import API from "../../../api/config";
+import * as Google from "expo-auth-session/providers/google";
+import * as WebBrowser from "expo-web-browser";
+
+WebBrowser.maybeCompleteAuthSession();
 
 // Instagram Verification Component
 const InstagramVerification = ({ profile, setProfile, userId }) => {
@@ -293,97 +297,86 @@ const YouTubeVerification = ({ profile, setProfile }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
 
-  // Initialize Google Sign-In
-  useEffect(() => {
-    const configureGoogleSignIn = async () => {
-      try {
-        await GoogleSignin.configure({
-          webClientId: 'YOUR_WEB_CLIENT_ID', // From Google Cloud Console
-          offlineAccess: true,
-        });
-      } catch (error) {
-        console.error('Google Sign-In configuration error:', error);
-      }
-    };
-    
-    configureGoogleSignIn();
-  }, []);
+  // Expo Google Auth (instead of GoogleSignin)
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    expoClientId:
+      "446936445912-fogcabgjh9t9ar2e3qap1le4qjudnocp.apps.googleusercontent.com",
+    iosClientId:
+      "446936445912-fogcabgjh9t9ar2e3qap1le4qjudnocp.apps.googleusercontent.com",
+    androidClientId:
+      "446936445912-fogcabgjh9t9ar2e3qap1le4qjudnocp.apps.googleusercontent.com",
+    webClientId:
+      "446936445912-fogcabgjh9t9ar2e3qap1le4qjudnocp.apps.googleusercontent.com",
+    scopes: ["https://www.googleapis.com/auth/youtube.readonly"],
+  });
 
-  // Real Google Sign-In implementation
-  const handleGoogleLogin = async () => {
+  // Handle response
+  React.useEffect(() => {
+    if (response?.type === "success") {
+      const { access_token } = response.authentication;
+      fetchYouTubeData(access_token);
+    }
+  }, [response]);
+
+  const fetchYouTubeData = async (accessToken) => {
     setIsLoading(true);
     try {
-      // 1. Authenticate with Google
-      await GoogleSignin.hasPlayServices();
-      const userInfo = await GoogleSignin.signIn();
-      
-      // 2. Get access token for YouTube API calls
-      const tokens = await GoogleSignin.getTokens();
-      const accessToken = tokens.accessToken;
-      
-      // 3. Verify channel ownership and get data
-      const response = await axios.get(
+      const res = await axios.get(
         "https://www.googleapis.com/youtube/v3/channels",
         {
-          params: {
-            part: "snippet,statistics",
-            mine: true, // Get the authenticated user's channel
-          },
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
+          params: { part: "snippet,statistics", mine: true },
+          headers: { Authorization: `Bearer ${accessToken}` },
         }
       );
-      
-      if (response.data.items && response.data.items.length > 0) {
-        const channel = response.data.items[0];
-        const channelHandle = channel.snippet.customUrl || channel.snippet.title;
-        
-        // 4. Verify the channel matches the expected profile
-        if (channelHandle.includes(profile.profileName.replace(/^@/, ''))) {
+
+      if (res.data.items && res.data.items.length > 0) {
+        const channel = res.data.items[0];
+        const channelHandle =
+          channel.snippet.customUrl || channel.snippet.title;
+
+        if (channelHandle.includes(profile.profileName.replace(/^@/, ""))) {
           const subs = channel.statistics.subscriberCount;
           setSubscriberCount(subs);
           setVerified(true);
-          
           setStatusMessage(
             `✅ Verified: ${profile.profileName} (${formatNumber(subs)} subscribers)`
           );
 
-          // Update profile with verified status
-          setProfile((prevProfile) => ({
-            ...prevProfile,
-            profileDetails: prevProfile.profileDetails.map((p) =>
+          setProfile((prev) => ({
+            ...prev,
+            profileDetails: prev.profileDetails.map((p) =>
               p.platform === "YouTube" && p.profileName === profile.profileName
                 ? {
                     ...p,
                     verified: true,
                     followers: subs,
-                    accessToken: accessToken, // Store for future API calls
+                    accessToken,
                   }
                 : p
             ),
           }));
         } else {
-          setStatusMessage("❌ This Google account doesn't own the specified YouTube channel");
+          setStatusMessage(
+            "❌ This Google account doesn't own the specified YouTube channel"
+          );
         }
       } else {
         setStatusMessage("❌ No YouTube channel found for this Google account");
       }
-    } catch (error) {
-      console.error('Google Sign-In error:', error);
+    } catch (e) {
+      console.error("YouTube API error:", e);
       setStatusMessage("❌ Verification failed");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const formatNumber = (num) => {
-    if (!num) return "0";
-    return new Intl.NumberFormat("en-US").format(num);
-  };
+  const formatNumber = (num) =>
+    num ? new Intl.NumberFormat("en-US").format(num) : "0";
 
   return (
     <View className="w-full mb-6">
+      {/* Card */}
       <TouchableOpacity
         onPress={() => setModalVisible(true)}
         className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
@@ -413,12 +406,8 @@ const YouTubeVerification = ({ profile, setProfile }) => {
         </Text>
       </TouchableOpacity>
 
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
+      {/* Modal */}
+      <Modal visible={modalVisible} animationType="slide" transparent>
         <View className="flex-1 bg-gray-800 bg-opacity-60 justify-center items-center p-5">
           <View className="bg-white rounded-xl w-full max-w-md p-5">
             <View className="flex-row justify-between items-center mb-4">
@@ -430,11 +419,11 @@ const YouTubeVerification = ({ profile, setProfile }) => {
               </TouchableOpacity>
             </View>
 
-            {verified || profile.verified ? (
+            {verified ? (
               <View className="items-center py-4">
                 <Ionicons name="checkmark-circle" size={48} color="#10B981" />
                 <Text className="text-lg font-semibold text-green-600 mt-2">
-                  ✅ Your YouTube account @{profile.profileName} is verified.
+                  ✅ Verified @{profile.profileName}
                 </Text>
                 {subscriberCount && (
                   <Text className="text-gray-600 mt-2">
@@ -448,55 +437,42 @@ const YouTubeVerification = ({ profile, setProfile }) => {
                   Sign in with Google to verify your YouTube channel ownership.
                 </Text>
 
-                {subscriberCount ? (
-                  <Text className="text-gray-600 mb-4">
-                    Public subscriber count: {formatNumber(subscriberCount)}
-                  </Text>
-                ) : (
-                  <Text className="text-red-500 mb-4">
-                    {statusMessage || "Could not fetch channel data."}
-                  </Text>
-                )}
-
-                {statusMessage && (
+                {statusMessage ? (
                   <Text
-                    className={`text-sm mb-4 ${statusMessage.includes("✅") ? "text-green-600" : "text-red-600"}`}
+                    className={`text-sm mb-4 ${
+                      statusMessage.includes("✅")
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
                   >
                     {statusMessage}
                   </Text>
-                )}
+                ) : null}
 
                 <TouchableOpacity
-                  onPress={handleGoogleLogin}
-                  disabled={isLoading || subscriberCount === null}
-                  className={`p-3 rounded-lg items-center mb-4 ${isLoading || subscriberCount === null ? "bg-gray-400" : "bg-red-600"}`}
+                  onPress={() => promptAsync()}
+                  disabled={!request || isLoading}
+                  className={`p-3 rounded-lg items-center mb-4 ${
+                    !request || isLoading ? "bg-gray-400" : "bg-red-600"
+                  }`}
                 >
                   {isLoading ? (
                     <ActivityIndicator color="white" />
                   ) : (
                     <Text className="text-white font-bold">
-                      {subscriberCount === null 
-                        ? "Channel data unavailable" 
-                        : `Sign in with Google @${profile.profileName}`
-                      }
+                      Sign in with Google
                     </Text>
                   )}
                 </TouchableOpacity>
               </View>
             )}
-
-            <TouchableOpacity
-              onPress={() => setModalVisible(false)}
-              className="bg-blue-500 rounded-lg p-3 items-center mt-4"
-            >
-              <Text className="text-white font-semibold">Done</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </Modal>
     </View>
   );
 };
+
 
 // Main Verification Component
 const Verification = ({ profileDetails = [], setProfile, userId }) => {

@@ -11,7 +11,7 @@ import {
   SafeAreaView,
   Dimensions,
   Animated,
-  Easing
+  Easing,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useSelector } from "react-redux";
@@ -47,8 +47,14 @@ const ViewProfile = () => {
   const allPastPosts = user?.pastPosts || [];
   const isCurrentUserProfile = user?._id === user?._id;
 
-  const categories = ["Category", ...new Set(allPastPosts.map((post) => post.category))];
-  const platforms = ["Platform", ...new Set(allPastPosts.map((post) => post.platform))];
+  const categories = [
+    "Category",
+    ...new Set(allPastPosts.map((post) => post.category)),
+  ];
+  const platforms = [
+    "Platform",
+    ...new Set(allPastPosts.map((post) => post.platform)),
+  ];
 
   const filteredPosts = allPastPosts.filter(
     (post) =>
@@ -57,7 +63,10 @@ const ViewProfile = () => {
   );
 
   const isFormatted = (followers) => {
-    return typeof followers === "string" && (followers.includes("k") || followers.includes("M"));
+    return (
+      typeof followers === "string" &&
+      (followers.includes("k") || followers.includes("M"))
+    );
   };
 
   const formatFollowers = (count) => {
@@ -72,13 +81,14 @@ const ViewProfile = () => {
   };
 
   const extractYoutubeId = (url) => {
-    const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+    const regExp =
+      /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
     const match = url.match(regExp);
     return match && match[7].length === 11 ? match[7] : null;
   };
 
   const isInstagramUrl = (url) => {
-    return url.includes('instagram.com') || url.includes('instagr.am');
+    return url.includes("instagram.com") || url.includes("instagr.am");
   };
 
   const renderPostContent = (post) => {
@@ -91,7 +101,7 @@ const ViewProfile = () => {
       );
     }
 
-    if (post.platform === 'YouTube') {
+    if (post.platform === "YouTube") {
       const videoId = extractYoutubeId(post.postLink);
       if (videoId) {
         return (
@@ -126,12 +136,16 @@ const ViewProfile = () => {
     } else {
       // For other platforms, show a link preview
       return (
-        <TouchableOpacity 
+        <TouchableOpacity
           className="w-full p-4 bg-slate-100 rounded-xl border border-slate-200"
           onPress={() => Linking.openURL(post.postLink)}
         >
-          <Text className="text-blue-500 font-medium" numberOfLines={1}>{post.postLink}</Text>
-          <Text className="text-slate-500 text-xs mt-2">Tap to open in browser</Text>
+          <Text className="text-blue-500 font-medium" numberOfLines={1}>
+            {post.postLink}
+          </Text>
+          <Text className="text-slate-500 text-xs mt-2">
+            Tap to open in browser
+          </Text>
         </TouchableOpacity>
       );
     }
@@ -139,8 +153,8 @@ const ViewProfile = () => {
 
   const renderPostCard = (post, index) => {
     return (
-      <Animated.View 
-        key={index} 
+      <Animated.View
+        key={index}
         className="w-80 mr-4 bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200"
         style={{ opacity: fadeAnim }}
       >
@@ -149,12 +163,16 @@ const ViewProfile = () => {
           <View className="w-8 h-8 rounded-full bg-gradient-to-tr from-yellow-400 to-pink-500 p-0.5">
             <View className="rounded-full bg-white p-0.5">
               <Image
-                source={{ uri: user.profilePicUrl || "https://via.placeholder.com/150" }}
+                source={{
+                  uri: user.profilePicUrl || "https://via.placeholder.com/150",
+                }}
                 className="w-6 h-6 rounded-full"
               />
             </View>
           </View>
-          <Text className="font-semibold text-sm ml-3 text-gray-800">{user.ownerName}</Text>
+          <Text className="font-semibold text-sm ml-3 text-gray-800">
+            {user.ownerName}
+          </Text>
           <View className="ml-auto">
             <Ionicons name="ellipsis-horizontal" size={20} color="#6B7280" />
           </View>
@@ -196,7 +214,7 @@ const ViewProfile = () => {
         showsVerticalScrollIndicator={false}
       >
         {/* Profile Header */}
-        <Animated.View 
+        <Animated.View
           className="p-6 pt-12 bg-white rounded-b-3xl shadow-sm border-b border-gray-200"
           style={{ opacity: fadeAnim }}
         >
@@ -205,53 +223,58 @@ const ViewProfile = () => {
             <View className="flex-col items-start">
               <View className="relative">
                 <View className="w-28 h-28 rounded-2xl border-2 border-blue-500 bg-blue-100 flex items-center justify-center">
-                                  {user.profilePicUrl ? (
-                                    <Image
-                                      source={{ uri: user.profilePicUrl }}
-                                      className="w-full h-full rounded-2xl"
-                                      resizeMode="cover"
-                                      onError={(e) => console.log("Image failed to load")}
-                                    />
-                                  ) : (
-                                    <View className="flex items-center justify-center">
-                                      <Ionicons name="person" size={40} color="#3B82F6" />
-                                      <Text className="text-blue-600 text-xs mt-1 font-medium">
-                                        No Image
-                                      </Text>
-                                    </View>
-                                  )}
-                                </View>
+                  {user.profilePicUrl ? (
+                    <Image
+                      source={{ uri: user.profilePicUrl }}
+                      className="w-full h-full rounded-2xl"
+                      resizeMode="cover"
+                      onError={(e) => console.log("Image failed to load")}
+                    />
+                  ) : (
+                    <View className="flex items-center justify-center">
+                      <Ionicons name="person" size={40} color="#3B82F6" />
+                      <Text className="text-blue-600 text-xs mt-1 font-medium">
+                        No Image
+                      </Text>
+                    </View>
+                  )}
+                </View>
                 <View className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1">
                   <Ionicons name="checkmark" size={16} color="white" />
                 </View>
               </View>
-              <Text className="text-xl font-bold text-gray-900 mt-4">{user.ownerName}</Text>
-              
+              <Text className="text-xl font-bold text-gray-900 mt-4">
+                {user.ownerName}
+              </Text>
+
               <View className="bg-blue-100 px-4 py-2 rounded-full flex-row items-center mt-3">
                 <Ionicons name="flash" size={16} color="#3B82F6" />
                 <Text className="text-xs text-blue-700 ml-1 font-medium">
                   Promotions: {allPastPosts.length}
                 </Text>
               </View>
-              
+
               {user.profileDetails.length > 0 &&
                 user.profileDetails.map((profile, index) => (
                   <View key={index} className="mt-2">
-                    {profile.platform.toLowerCase() === "instagram" && profile.followers && (
-                      <Text className="text-sm text-green-600 font-medium">
-                        {isFormatted(profile.followers)
-                          ? profile.followers
-                          : formatFollowers(profile.followers)}{" "}
-                        Followers
-                      </Text>
-                    )}
+                    {profile.platform.toLowerCase() === "instagram" &&
+                      profile.followers && (
+                        <Text className="text-sm text-green-600 font-medium">
+                          {isFormatted(profile.followers)
+                            ? profile.followers
+                            : formatFollowers(profile.followers)}{" "}
+                          Followers
+                        </Text>
+                      )}
                   </View>
                 ))}
             </View>
 
             {/* Categories */}
             <View className="flex-1 ml-6">
-              <Text className="text-gray-600 text-sm font-medium mb-2">Categories</Text>
+              <Text className="text-gray-600 text-sm font-medium mb-2">
+                Categories
+              </Text>
               <View className="flex-row flex-wrap gap-2">
                 {categories
                   .filter((category) => category !== "Category")
@@ -260,7 +283,9 @@ const ViewProfile = () => {
                       key={index}
                       className="bg-gray-100 px-3 py-2 rounded-xl border border-gray-200"
                     >
-                      <Text className="text-xs text-gray-700 font-medium">{category}</Text>
+                      <Text className="text-xs text-gray-700 font-medium">
+                        {category}
+                      </Text>
                     </View>
                   ))}
               </View>
@@ -275,9 +300,13 @@ const ViewProfile = () => {
                   <Ionicons name="play-circle" size={20} color="#7C3AED" />
                 </View>
               </View>
-              <Text className="text-gray-900 font-semibold text-xs mb-1">Story Post</Text>
+              <Text className="text-gray-900 font-semibold text-xs mb-1">
+                Story Post
+              </Text>
               <Text className="text-xs text-gray-500">
-                {user.pricing?.storyPost ? `₹${user.pricing.storyPost}` : "Negotiable"}
+                {user.pricing?.storyPost
+                  ? `₹${user.pricing.storyPost}`
+                  : "Negotiable"}
               </Text>
             </View>
 
@@ -287,9 +316,13 @@ const ViewProfile = () => {
                   <Ionicons name="image" size={20} color="#3B82F6" />
                 </View>
               </View>
-              <Text className="text-gray-900 font-semibold text-xs mb-1">Feed Post</Text>
+              <Text className="text-gray-900 font-semibold text-xs mb-1">
+                Feed Post
+              </Text>
               <Text className="text-xs text-gray-500">
-                {user.pricing?.feedPost ? `₹${user.pricing.feedPost}` : "Negotiable"}
+                {user.pricing?.feedPost
+                  ? `₹${user.pricing.feedPost}`
+                  : "Negotiable"}
               </Text>
             </View>
 
@@ -299,7 +332,9 @@ const ViewProfile = () => {
                   <Ionicons name="videocam" size={20} color="#EF4444" />
                 </View>
               </View>
-              <Text className="text-gray-900 font-semibold text-xs mb-1">Reel</Text>
+              <Text className="text-gray-900 font-semibold text-xs mb-1">
+                Reel
+              </Text>
               <Text className="text-xs text-gray-500">
                 {user.pricing?.reel ? `₹${user.pricing.reel}` : "Negotiable"}
               </Text>
@@ -308,18 +343,24 @@ const ViewProfile = () => {
         </Animated.View>
 
         {/* Accounts Section */}
-        <Animated.View 
+        <Animated.View
           className="p-6 mt-6 bg-white rounded-3xl mx-4 shadow-sm border border-gray-200"
           style={{ opacity: fadeAnim }}
         >
           <View className="flex-row justify-between items-center mb-5">
             <Text className="text-xl font-bold text-gray-900">Accounts</Text>
             <TouchableOpacity>
-              <Text className="text-blue-600 text-sm font-medium">View All</Text>
+              <Text className="text-blue-600 text-sm font-medium">
+                View All
+              </Text>
             </TouchableOpacity>
           </View>
-          
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="pb-2">
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="pb-2"
+          >
             {user.profileDetails.map((profile, index) => (
               <View
                 key={index}
@@ -331,22 +372,24 @@ const ViewProfile = () => {
                       source={{
                         uri:
                           profile.platform === "Instagram"
-                            ? "https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png"
+                            ? "https://cdn-icons-png.flaticon.com/512/2111/2111463.png"
                             : profile.platform === "Facebook"
-                            ? "https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg"
-                            : profile.platform === "Twitter"
-                            ? "https://upload.wikimedia.org/wikipedia/en/6/60/Twitter_Logo_as_of_2021.svg"
-                            : profile.platform === "YouTube"
-                            ? "https://cdn-icons-png.flaticon.com/512/174/174883.png"
-                            : "https://via.placeholder.com/40",
+                              ? "https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg"
+                              : profile.platform === "Twitter"
+                                ? "https://upload.wikimedia.org/wikipedia/en/6/60/Twitter_Logo_as_of_2021.svg"
+                                : profile.platform === "YouTube"
+                                  ? "https://cdn-icons-png.flaticon.com/512/174/174883.png"
+                                  : "https://via.placeholder.com/40",
                       }}
                       className="w-12 h-12 rounded-xl"
                     />
                     <View className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 border border-gray-200">
-                      <Ionicons 
-                        name="checkmark-circle" 
-                        size={16} 
-                        color="#10B981" 
+                      <Ionicons
+                        name={
+                          profile.verified ? "checkmark-circle" : "close-circle"
+                        }
+                        size={16}
+                        color={profile.verified ? "#10B981" : "#EF4444"}
                       />
                     </View>
                   </View>
@@ -354,10 +397,12 @@ const ViewProfile = () => {
                     <Text className="text-gray-900 font-bold" numberOfLines={1}>
                       {profile.profileName}
                     </Text>
-                    <Text className="text-xs text-gray-500 mt-1">{profile.platform}</Text>
+                    <Text className="text-xs text-gray-500 mt-1">
+                      {profile.platform}
+                    </Text>
                   </View>
                 </View>
-                
+
                 <View className="flex-row justify-between items-center mt-4">
                   <View className="items-start">
                     <Text className="text-sm text-green-600 font-bold">
@@ -365,14 +410,18 @@ const ViewProfile = () => {
                         ? profile.followers
                         : formatFollowers(profile.followers)}
                     </Text>
-                    <Text className="text-xs text-gray-500 mt-1">Followers</Text>
+                    <Text className="text-xs text-gray-500 mt-1">
+                      Followers
+                    </Text>
                   </View>
-                  
+
                   <TouchableOpacity
                     onPress={() => Linking.openURL(profile.profilePicUrl)}
                     className="bg-blue-600 px-4 py-2 rounded-full"
                   >
-                    <Text className="text-white text-xs font-medium">Visit Profile</Text>
+                    <Text className="text-white text-xs font-medium">
+                      Visit Profile
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -381,44 +430,64 @@ const ViewProfile = () => {
         </Animated.View>
 
         {/* Posts Section */}
-        <Animated.View 
+        <Animated.View
           className="p-6 mt-6 bg-white rounded-3xl mx-4 mb-6 shadow-sm border border-gray-200"
           style={{ opacity: fadeAnim }}
         >
           <View className="flex-row justify-between items-center mb-6">
-            <Text className="text-xl font-bold text-gray-900">Popular Posts</Text>
-            
+            <Text className="text-xl font-bold text-gray-900">
+              Popular Posts
+            </Text>
+
             <View className="flex-row bg-gray-100 rounded-full p-1 border border-gray-200">
-              <TouchableOpacity 
+              <TouchableOpacity
                 className={`px-3 py-1 rounded-full ${selectedPlatform === "Platform" ? "bg-blue-600" : ""}`}
                 onPress={() => setSelectedPlatform("Platform")}
               >
-                <Text className={`text-xs ${selectedPlatform === "Platform" ? "text-white" : "text-gray-600"}`}>All</Text>
+                <Text
+                  className={`text-xs ${selectedPlatform === "Platform" ? "text-white" : "text-gray-600"}`}
+                >
+                  All
+                </Text>
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 className={`px-3 py-1 rounded-full ${selectedPlatform === "Instagram" ? "bg-blue-600" : ""}`}
                 onPress={() => setSelectedPlatform("Instagram")}
               >
-                <Text className={`text-xs ${selectedPlatform === "Instagram" ? "text-white" : "text-gray-600"}`}>Instagram</Text>
+                <Text
+                  className={`text-xs ${selectedPlatform === "Instagram" ? "text-white" : "text-gray-600"}`}
+                >
+                  Instagram
+                </Text>
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 className={`px-3 py-1 rounded-full ${selectedPlatform === "YouTube" ? "bg-blue-600" : ""}`}
                 onPress={() => setSelectedPlatform("YouTube")}
               >
-                <Text className={`text-xs ${selectedPlatform === "YouTube" ? "text-white" : "text-gray-600"}`}>YouTube</Text>
+                <Text
+                  className={`text-xs ${selectedPlatform === "YouTube" ? "text-white" : "text-gray-600"}`}
+                >
+                  YouTube
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
 
           {/* Posts Grid */}
           {filteredPosts.length > 0 ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="pb-2">
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              className="pb-2"
+            >
               {filteredPosts.map((post, index) => renderPostCard(post, index))}
             </ScrollView>
           ) : (
             <View className="py-8 items-center justify-center">
               <Ionicons name="images" size={48} color="#9CA3AF" />
-              <Text className="text-gray-500 mt-4 text-center">No posts available for the selected filters.</Text>
+              <Text className="text-gray-500 mt-4 text-center">
+                No posts available for the selected filters.
+              </Text>
             </View>
           )}
         </Animated.View>
@@ -429,7 +498,9 @@ const ViewProfile = () => {
         <Modal transparent visible={true} animationType="fade">
           <View className="flex-1 bg-black bg-opacity-50 justify-center items-center p-4">
             <View className="bg-white p-6 rounded-2xl w-full max-w-md border border-gray-200 shadow-lg">
-              <Text className="text-lg font-bold text-gray-900 mb-4">{alert.message}</Text>
+              <Text className="text-lg font-bold text-gray-900 mb-4">
+                {alert.message}
+              </Text>
               <View className="flex-row justify-end space-x-3">
                 {alert.onCancel && (
                   <TouchableOpacity

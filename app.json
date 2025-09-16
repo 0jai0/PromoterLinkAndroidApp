@@ -2,7 +2,7 @@
   "expo": {
     "name": "PromoterLink",
     "slug": "PromoterLink",
-    "scheme": "PromoterLink",
+    "scheme": "promoterlink",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/logov3.png",
@@ -29,13 +29,18 @@
           "action": "VIEW",
           "data": [
             {
-              "scheme": "PromoterLink",
+              "scheme": "promoterlink",
               "host": "*",
               "pathPrefix": "/"
             },
             {
               "scheme": "https",
-              "host": "PromoterLink.com",
+              "host": "promoterlink.com",
+              "pathPrefix": "/"
+            },
+            {
+              "scheme": "https",
+              "host": "www.promoterlink.com",
               "pathPrefix": "/"
             }
           ],
@@ -46,40 +51,35 @@
         }
       ]
     },
+    "web": {
+      "favicon": "./assets/logov3.png",
+      "bundler": "metro"
+    },
+    "packagerOpts": {
+      "config": "metro.config.js",
+      "sourceExts": [
+        "js",
+        "jsx",
+        "json",
+        "ts",
+        "tsx",
+        "cjs"
+      ]
+    },
     "extra": {
       "eas": {
         "projectId": "c0d559d1-bbd2-4b0b-beb7-2b98cad69d93"
       }
-    }
-  },
-  "web": {
-    "favicon": "./assets/logov3.png",
-    "bundler": "metro"
-  },
-  "packagerOpts": {
-    "config": "metro.config.js",
-    "sourceExts": [
-      "js",
-      "jsx",
-      "json",
-      "ts",
-      "tsx",
-      "cjs"
-    ]
-  },
-  "extra": {
-    "eas": {
-      "projectId": "c0d559d1-bbd2-4b0b-beb7-2b98cad69d93"
-    }
-  },
-  "plugins": [
-    [
-      "expo-build-properties",
-      {
-        "android": {
-          "googleServicesFile": "./google-services.json"
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "googleServicesFile": "./google-services.json"
+          }
         }
-      }
+      ]
     ]
-  ]
+  }
 }

@@ -4,8 +4,8 @@ import { makeRedirectUri } from "expo-auth-session";
 // Google OAuth Configuration
 export const GOOGLE_OAUTH_CONFIG = {
   // Client IDs
-  ANDROID_CLIENT_ID: "446936445912-dd29l97pdmokc6a5p84ldetocjdv2f1e.apps.googleusercontent.com",
-  EXPO_CLIENT_ID: "446936445912-dd29l97pdmokc6a5p84ldetocjdv2f1e.apps.googleusercontent.com",
+  ANDROID_CLIENT_ID: "446936445912-fogcabgjh9t9ar2e3qap1le4qjudnocp.apps.googleusercontent.com",
+  EXPO_CLIENT_ID: "446936445912-fogcabgjh9t9ar2e3qap1le4qjudnocp.apps.googleusercontent.com",
   IOS_CLIENT_ID: "YOUR_IOS_CLIENT_ID", // Add when needed
   WEB_CLIENT_ID: "446936445912-fogcabgjh9t9ar2e3qap1le4qjudnocp.apps.googleusercontent.com",
 
